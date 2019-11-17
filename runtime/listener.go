@@ -5,38 +5,56 @@ import (
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 )
 
-// Listener defines a parse listener.
-type Listener struct {
-	*calscript_lang.BaseCalscriptListener
-	registry *RuleRegistry
+// Listener interface type
+type Listener interface {
+	GetRule(n string) (Rule, error)
+	GetError() error
+	antlr.ParseTreeListener
 }
 
-// NewListener returns a new *Parser type instance.
-func NewListener(rr *RuleRegistry) (*Listener, error) {
-	l := new(Listener)
-	l.registry = rr
+// CalscriptListener defines a parse listener.
+type CalscriptListener struct {
+	*calscript_lang.BaseCalscriptListener
+	rules *RuleRegistry
+	err   error
+}
+
+// NewCalscriptListener returns a new *Parser type instance.
+func NewCalscriptListener(rr *RuleRegistry) (*CalscriptListener, error) {
+	l := new(CalscriptListener)
+	l.rules = rr
 	return l, nil
 }
 
 // GetRule from embedded RuleRegistry
-func (p *Listener) GetRule(n string) (Rule, error) {
+func (l *CalscriptListener) GetRule(n string) (Rule, error) {
 	rt := RuleType(n)
-	r, err := p.registry.Get(rt)
+	r, err := l.rules.Get(rt)
 	return r, err
 }
 
 // EnterEveryRule is called when any rule is entered.
-func (p *Listener) EnterEveryRule(ctx antlr.ParserRuleContext) {
-	r, err := p.GetRule("test")
+func (l *CalscriptListener) EnterEveryRule(ctx antlr.ParserRuleContext) {
+	r, err := l.GetRule("test")
 	if err != nil {
+		l.err = err
+	} else {
 		r.HandleEnter(ctx)
 	}
+
 }
 
 // ExitEveryRule is called when any rule is exited.
-func (p *Listener) ExitEveryRule(ctx antlr.ParserRuleContext) {
-	r, err := p.GetRule("test")
+func (l *CalscriptListener) ExitEveryRule(ctx antlr.ParserRuleContext) {
+	r, err := l.GetRule("test")
 	if err != nil {
+		l.err = err
+	} else {
 		r.HandleExit(ctx)
 	}
+}
+
+// GetError from tree listener
+func (l *CalscriptListener) GetError() error {
+	return l.err
 }
