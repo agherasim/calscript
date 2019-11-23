@@ -9,32 +9,34 @@ import (
 // ErrorListener interface
 type ErrorListener interface {
 	antlr.ErrorListener
-	GetErrors() (int, []error)
+	GetErrors() []error
 }
 
-// ErrorStackSize default value
-const ErrorStackSize = 10
+// DefaultErrorStackSize specify how many errors to keep in stack
+// More errors reported than ErrorStackSize will be discarded
+const DefaultErrorStackSize = 10
 
 // CalscriptErrorListener struct
 type CalscriptErrorListener struct {
 	errors []error
-	errCnt int
 }
 
 // GetErrors reported by parser
-func (el *CalscriptErrorListener) GetErrors() (int, []error) {
-	if el.errCnt > 0 {
-		return el.errCnt, el.errors[0:el.errCnt]
+func (el *CalscriptErrorListener) GetErrors() []error {
+	return el.errors
+}
+
+// AppendError to error stack
+func (el *CalscriptErrorListener) AppendError(line, column int, msg string) {
+	if len(el.errors) < cap(el.errors) {
+		e := fmt.Errorf("line %d:%d %s", line, column, msg)
+		el.errors = append(el.errors, e)
 	}
-	return el.errCnt, nil
 }
 
 // SyntaxError handler
 func (el *CalscriptErrorListener) SyntaxError(recognizer antlr.Recognizer, offendingSymbol interface{}, line, column int, msg string, e antlr.RecognitionException) {
-	if el.errCnt < ErrorStackSize {
-		el.errors[el.errCnt] = fmt.Errorf("line %d:%d %s", line, column, msg)
-		el.errCnt++
-	}
+	el.AppendError(line, column, msg)
 }
 
 // ReportAmbiguity handler
@@ -49,10 +51,9 @@ func (el *CalscriptErrorListener) ReportAttemptingFullContext(recognizer antlr.P
 func (el *CalscriptErrorListener) ReportContextSensitivity(recognizer antlr.Parser, dfa *antlr.DFA, startIndex, stopIndex, prediction int, configs antlr.ATNConfigSet) {
 }
 
-// NewCalscriptErrorListener returns a Calscript specific error listener
-func NewCalscriptErrorListener() *CalscriptErrorListener {
+// NewErrorListener returns a Calscript specific error listener
+func NewErrorListener(capacity int) *CalscriptErrorListener {
 	return &CalscriptErrorListener{
-		errors: make([]error, ErrorStackSize),
-		errCnt: 0,
+		errors: make([]error, 0, capacity),
 	}
 }

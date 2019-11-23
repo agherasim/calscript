@@ -9,9 +9,8 @@ import (
 
 // Listener interface type
 type Listener interface {
-	GetRule(n string) (Rule, error)
-	GetError() error
 	antlr.ParseTreeListener
+	GetRule(n string) (Rule, error)
 }
 
 // CalscriptListener defines a parse listener.
@@ -21,8 +20,8 @@ type CalscriptListener struct {
 	err   error
 }
 
-// NewCalscriptListener returns a new *Parser type instance.
-func NewCalscriptListener(rr *RuleRegistry) (*CalscriptListener, error) {
+// NewListener returns a new *Parser type instance.
+func NewListener(rr *RuleRegistry) (*CalscriptListener, error) {
 	l := new(CalscriptListener)
 	l.rules = rr
 	return l, nil
@@ -38,7 +37,6 @@ func (l *CalscriptListener) GetRule(n string) (Rule, error) {
 // EnterEveryRule is called when any rule is entered.
 func (l *CalscriptListener) EnterEveryRule(ctx antlr.ParserRuleContext) {
 	r, err := l.getRule(ctx)
-
 	if err == nil {
 		r.HandleEnter(ctx)
 	}
@@ -47,15 +45,9 @@ func (l *CalscriptListener) EnterEveryRule(ctx antlr.ParserRuleContext) {
 // ExitEveryRule is called when any rule is exited.
 func (l *CalscriptListener) ExitEveryRule(ctx antlr.ParserRuleContext) {
 	r, err := l.getRule(ctx)
-
 	if err == nil {
 		r.HandleExit(ctx)
 	}
-}
-
-// GetError from tree listener
-func (l *CalscriptListener) GetError() error {
-	return l.err
 }
 
 // getRule returns a rule from a given ParserRuleContext type

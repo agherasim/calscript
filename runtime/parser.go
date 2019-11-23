@@ -17,7 +17,7 @@ type CalscriptParser struct {
 }
 
 // Parse input calscript string.
-func (p *CalscriptParser) Parse(s string) (Listener, error) {
+func (p *CalscriptParser) Parse(s string) []error {
 	stream := antlr.NewInputStream(s)
 	lexer := calscript_lang.NewCalscriptLexer(stream)
 	lexer.AddErrorListener(p.errorListener)
@@ -29,12 +29,7 @@ func (p *CalscriptParser) Parse(s string) (Listener, error) {
 	parser.AddErrorListener(p.errorListener)
 	antlr.ParseTreeWalkerDefault.Walk(p.listener, parser.Calscript())
 
-	lenErr, err := p.errorListener.GetErrors()
-	if lenErr > 0 {
-		return p.listener, err[0]
-	}
-
-	return p.listener, p.listener.GetError()
+	return p.errorListener.GetErrors()
 }
 
 // SetListener for parser
@@ -47,8 +42,8 @@ func (p *CalscriptParser) SetErrorListener(el ErrorListener) {
 	p.errorListener = el
 }
 
-// NewCalscriptParser returns a *CalscriptParser instance.
-func NewCalscriptParser(l Listener, el ErrorListener) (*CalscriptParser, error) {
+// NewParser returns a *CalscriptParser instance.
+func NewParser(l Listener, el ErrorListener) (*CalscriptParser, error) {
 	p := &CalscriptParser{}
 	p.SetListener(l)
 	p.SetErrorListener(el)
