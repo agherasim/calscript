@@ -1,6 +1,8 @@
 package runtime
 
 import (
+	"reflect"
+
 	"github.com/agherasim/calscript_lang"
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 )
@@ -35,21 +37,18 @@ func (l *CalscriptListener) GetRule(n string) (Rule, error) {
 
 // EnterEveryRule is called when any rule is entered.
 func (l *CalscriptListener) EnterEveryRule(ctx antlr.ParserRuleContext) {
-	r, err := l.GetRule("test")
-	if err != nil {
-		l.err = err
-	} else {
+	r, err := l.getRule(ctx)
+
+	if err == nil {
 		r.HandleEnter(ctx)
 	}
-
 }
 
 // ExitEveryRule is called when any rule is exited.
 func (l *CalscriptListener) ExitEveryRule(ctx antlr.ParserRuleContext) {
-	r, err := l.GetRule("test")
-	if err != nil {
-		l.err = err
-	} else {
+	r, err := l.getRule(ctx)
+
+	if err == nil {
 		r.HandleExit(ctx)
 	}
 }
@@ -57,4 +56,15 @@ func (l *CalscriptListener) ExitEveryRule(ctx antlr.ParserRuleContext) {
 // GetError from tree listener
 func (l *CalscriptListener) GetError() error {
 	return l.err
+}
+
+// getRule returns a rule from a given ParserRuleContext type
+// We strip out pointer (*) and package name to keep things simple.
+func (l *CalscriptListener) getRule(ctx antlr.ParserRuleContext) (Rule, error) {
+	k := reflect.TypeOf(ctx).String()
+	r, err := l.GetRule(k)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
 }

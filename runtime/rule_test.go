@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
@@ -8,43 +9,40 @@ import (
 
 func TestAddRule(t *testing.T) {
 	rr, _ := NewRuleRegistry()
-	rt, r := GetTestRule()
+	rt, r := getTestRule("test")
 	err := rr.Add(rt, r)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
 }
 
 func TestLenRegistry(t *testing.T) {
 	rr, _ := NewRuleRegistry()
-	rt, r := GetTestRule()
+	rt, r := getTestRule("test")
 	err := rr.Add(rt, r)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
+
 	l, err := rr.Len()
+	assert.Nil(t, err)
 
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if l != 1 {
-		t.Fatalf("Invalid list len, expected 1 got %d", l)
-	}
+	assert.Equal(t, 1, l)
 }
 
 func TestGetRuleFromRegistry(t *testing.T) {
 	rr, _ := NewRuleRegistry()
-	rt, r := GetTestRule()
+	rt, r := getTestRule("test")
 	err := rr.Add(rt, r)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
+
 	rt2 := RuleType("test")
 	r, err = rr.Get(rt2)
-	if err != nil {
-		t.Fatalf("Cannot find key %s\n", rt)
-	}
+	assert.Nil(t, err)
+}
+
+func TestNewRule(t *testing.T) {
+	rr, _ := NewRuleRegistry()
+	rt, r := getTestRule("*calscript_lang.CalscriptContext")
+	err := rr.Add(rt, r)
+
+	assert.Nil(t, err)
 }
 
 // Helpers
@@ -59,8 +57,8 @@ func (tr *TestRule) HandleExit(ctx antlr.ParserRuleContext) error {
 	return nil
 }
 
-func GetTestRule() (RuleType, Rule) {
-	rt := RuleType("test")
+func getTestRule(t string) (RuleType, Rule) {
+	rt := RuleType(t)
 	r := &TestRule{}
 	return rt, r
 }

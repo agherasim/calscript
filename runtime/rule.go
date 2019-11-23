@@ -46,7 +46,7 @@ func (rr *RuleRegistry) Get(rt RuleType) (Rule, error) {
 	return nil, fmt.Errorf("cannot find rule '%s' in registry", rt)
 }
 
-// Len lenght of rules in Registry.
+// Len length of rules in Registry.
 func (rr *RuleRegistry) Len() (int, error) {
 	return len(rr.rules), nil
 }
